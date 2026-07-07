@@ -26,7 +26,10 @@ from datetime import datetime
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 MODEL_DIR = PROJECT_ROOT / "outputs"
 RESULTS_DIR = PROJECT_ROOT / "results"  # user test results saved here
-RESULTS_DIR.mkdir(exist_ok=True)
+try:
+    RESULTS_DIR.mkdir(exist_ok=True)
+except Exception:
+    pass  # read-only cloud disk; result download still works
 
 SAMPLE_RATE = 8000
 CLIP_SECONDS = 2.0
@@ -84,11 +87,16 @@ def extract_features(signal):
 # ============================================================================
 @st.cache_resource
 def load_model():
-    """Load the trained Random Forest model."""
-    model_path = MODEL_DIR / "model_random_forest.joblib"
-    if not model_path.exists():
-        return None
-    return joblib.load(model_path)
+    """Load the trained Random Forest model, looking in a few likely places."""
+    candidates = [
+        MODEL_DIR / "model_random_forest.joblib",       # outputs/ folder
+        PROJECT_ROOT / "model_random_forest.joblib",     # project top folder
+        Path(__file__).resolve().parent / "model_random_forest.joblib",  # next to app.py
+    ]
+    for model_path in candidates:
+        if model_path.exists():
+            return joblib.load(model_path)
+    return None
 
 
 def predict_wheeze(audio_data, sr):
@@ -202,10 +210,14 @@ Confidence: {wheeze_prob:.1f}%
 Audio Duration: {len(audio_to_process)/sr:.2f}s
 Sample Rate: {sr} Hz
 """
-        result_file = RESULTS_DIR / f"test_{timestamp}.txt"
-        result_file.write_text(result_text)
-
-        st.success(f"✓ Result saved to: {result_file}")
+        try:
+            result_file = RESULTS_DIR / f"test_{timestamp}.txt"
+            result_file.write_text(result_text)
+            st.success(f"✓ Result saved to: {result_file}")
+        except Exception:
+            # On a cloud server the disk may be read-only - that's fine,
+            # the download button below still gives the user the result.
+            st.info("Use the download button below to save this result.")
 
         # Download button
         st.download_button(
