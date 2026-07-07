@@ -1,0 +1,12 @@
+# Install everything with:   pip install -r requirements.txt
+numpy
+pandas
+scipy
+scikit-learn
+librosa
+matplotlib
+joblib
+xgboost          # optional but recommended (one of the compared models)
+tensorflow       # optional - only needed for the CNN model
+streamlit        # web app for easy testing (no coding needed)
+plotly           # for interactive charts in the web app
