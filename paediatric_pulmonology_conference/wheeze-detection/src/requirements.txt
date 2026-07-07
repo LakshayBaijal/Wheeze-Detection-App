@@ -1,0 +1,12 @@
+# Dependencies for the DEPLOYED web app (Streamlit Cloud reads this file
+# because it sits next to app.py). Kept lean so the free server builds fast.
+# scikit-learn is left un-pinned so the server can install a version that
+# matches its Python. The saved model loads fine across recent versions.
+streamlit>=1.40
+numpy
+scipy
+scikit-learn>=1.6
+soundfile
+librosa
+joblib
+plotly
